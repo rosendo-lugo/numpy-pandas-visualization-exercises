@@ -20,19 +20,18 @@ print('\n',orders_table)
 # 1. What is the total price for each order?
 print('\nExercises III, Question 1')
 
-# url = get_db_url('chipotle')
-# query = '''
-# SELECT order_id, SUM(CAST(REPLACE(item_price, '$', '') AS DECIMAL(10,2))) AS total_price
-# FROM orders
-# GROUP BY order_id
-# '''
+# ************** Option 1 **************
+query = '''
+SELECT order_id, SUM(CAST(REPLACE(item_price, '$', '') AS DECIMAL(10,2))) AS total_price
+FROM orders
+GROUP BY order_id
+'''
 
-# total_price_df = pd.read_sql(query, url)
-# print(total_price_df)
-
-# pd.pivot_table(data=total_price_df, index='order_id', values='item_price', aggfunc='sum') 
+total_price_df = pd.read_sql(query, url)
+print(f'\n************** Option 1 **************\n',total_price_df)
 
 
+# ************** Option 2 **************
 # clean the item_price column
 orders_table['item_price'] = orders_table['item_price']\
     .str.replace('$', '').astype(float)
@@ -41,23 +40,28 @@ orders_table['item_price'] = orders_table['item_price']\
 order_totals = pd.pivot_table(orders_table, values='item_price',\
                                index='order_id', aggfunc=np.sum)
 
-print(order_totals)
+print(f'\n************** Option 2 **************\n',order_totals,'\n')
+
+
+
 # 2. What are the most popular 3 items?
 print('\nExercises III, Question 2')
+# ************** Option 1 **************
 popular_three = orders_table.groupby('item_name')['quantity'].sum()
 top_three = popular_three.sort_values(ascending=False).head(3)
-print(f'Option 1\n',top_three)
+print(f'\n************** Option 1 **************\n',top_three)
 
 
-# print(orders_table.head())
+# ************** Option 2 **************
 most_popular = pd.pivot_table(data=orders_table, index='item_name', values='quantity', aggfunc='sum')
 three_popular = most_popular.nlargest(3, 'quantity')
-print(f'\nOption 2\n',three_popular)
+print(f'\n************** Option 2 **************\n',three_popular) 
 
 
 
 # 3. Which item has produced the most revenue?
-print('\nExercises III, Question 3')
+print('\n\nExercises III, Question 3')
+# ONLY ONE OPTION :)
 
 # Use the pivot_table() method to group orders by item_name and order_id
 #  and sum the quantity and item_price columns for each group
@@ -71,7 +75,7 @@ order_totals['total_price'] = order_totals['quantity'] * order_totals['item_pric
 # Use the nlargest() method to return the row with the highest total item_price
 most_revenue = order_totals.nlargest(1, 'total_price')
 
-print(f'The item with the most Revenue\n',most_revenue)
+print(f'The item with the most Revenue\n\n',most_revenue)
 
 
 # 4. Join the employees and titles DataFrames together.
