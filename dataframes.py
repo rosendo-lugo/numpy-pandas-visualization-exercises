@@ -100,7 +100,6 @@ print(mpg.info())
 print('\nDescribe')
 print(mpg.describe())
 
-
 # d. Rename the cty column to city.
 print(f'\nPart II, Question d')
 mpg.rename(columns={'cty': 'city'}, inplace=True)
@@ -147,8 +146,9 @@ mpg[mpg['class'] == 'compact']
 mpg_compact = mpg[mpg['class'] == 'compact']
 
 # mpg_compact.hightway.min()
-mpg_compact[mpg_compact.highway == mpg_compact.highway.min()]
-mpg_compact[mpg_compact.highway == mpg_compact.highway.max()]
+print(mpg_compact[mpg_compact.highway == mpg_compact.highway.min()])
+print(mpg_compact[mpg_compact.highway == mpg_compact.highway.max()])
+# print(mpg_compact)
 
 # j. Create a column named average_mileage that is the mean of the city 
 # and highway mileage.
