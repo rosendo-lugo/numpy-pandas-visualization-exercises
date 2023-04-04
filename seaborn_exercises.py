@@ -1,58 +1,235 @@
+# %%
 # Exercises
 # Create a file named seaborn_exercises.py or seaborn_exercises.ipynb
 # for this exercise.
 # Use seaborn's load_dataset function to load the iris database to 
 # answer the following questions:
 
+# pandas for tabular data manipulation
+import pandas as pd
+
+# numpy for vectorized matrix operations
+import numpy as np
+
+# matplotlib.pyplot for basic matplotlib functionality
+import matplotlib.pyplot as plt
+
+# seabon for more visualizations! 
+import seaborn as sns
+
+# data for the exercises
+from pydataset import data
+
+data('iris').head()
+
+sns.get_dataset_names()
+
+df = sns.load_dataset('iris')
+print(df.head())
+print(df.info())
+
+
+# %%
+# Displot
+# shows the distribution of a variable
+# typically continunous
+
+
 # 1. What does the distribution of petal lengths look like?
 print(f'Question 1')
 
+sns.displot(data=df, x='petal_length')
+plt.show()
+
+
+
+
+# %%
+
 # 2. Is there a relationship between petal length and petal width?
 print(f'Question 2')
+sns.relplot(data=df, x='petal_length', y='petal_width', hue='species')
+plt.show()
+
+# %%
 
 # 3. Would it be reasonable to predict species based on sepal width
    # and sepal length? For this, you'll visualize two numeric columns 
    # through the lense of a categorical column.
 print(f'Question 3')
+sns.relplot(data=df, x='sepal_length', y='sepal_width', col='species' )
+plt.show()
+
+# %%
 
 # 4. Which features would be best used to predict species?
 print(f'Question 4')
+sns.relplot(data=df, x='sepal_length', y='sepal_width', hue='species')
+plt.show()
 
-# 1. Load the anscombe dataset from seaborn. Use pandas to group the
-    # data by the dataset column, and calculate summary statistics for each dataset.
-    # What do you notice?
+# %%
+
+# 1. Load the anscombe dataset from seaborn. 
 print(f'Question 1')
+data('anscombe').head()
+sns.get_dataset_names()
+df_anscombe = sns.load_dataset('anscombe')
+print(df_anscombe.head())
+   # Use pandas to group the data by the dataset column, and calculate summary
+   # statistics for each dataset.
+
+
+    # What do you notice?
+print((df_anscombe.groupby('dataset').describe()).T)
+
     # Plot the x and y values from the anscombe data. Each dataset should
     # be in a separate column.
+sns.relplot(data=df_anscombe, x='x', y='y', col='dataset' )
+plt.show()
 
+
+
+# %%
 
 # 2. Load the InsectSprays dataset from pydataset and read it's documentation. 
-   # reate a boxplot that shows the effectiveness of the different insect sprays.
+ 
 print(f'Question 2')
+data('InsectSprays').head()
+# Load the InsectSprays dataset and assign it to a variable
+df_insectsprays = data('InsectSprays')
+
+print(df_insectsprays.head())
+
+
+# %%
+
+# create a boxplot that shows the effectiveness of the different insect sprays
+# Create a box plot of the 'count' column grouped by the 'spray' column
+sns.boxplot(data=df_insectsprays, x='spray', y='count')
+plt.title('Effectiveness of Insect Sprays')
+plt.xlabel('Insect Spray')
+plt.ylabel('Count')
+plt.show()
+
+# %%
+
+
+# %%
 
 # 3. Load the swiss dataset from pydataset and read it's documentation. 
-    # Create visualizations to answer the following questions:
 
-    # 3a. Create an attribute named is_catholic that holds a boolean value 
-    #   of whether or not the province is Catholic. (Choose a cutoff point
-    #   for what constitutes catholic)
+print(f'Question 3')
+data('swiss').head()
+df_swiss = data('swiss')
+
+df_swiss.head()
+df_swiss.info()
+
+# %%
+# Create visualizations to answer the following questions:
+# 3a. Create an attribute named is_catholic that holds a boolean value 
+#   of whether or not the province is Catholic. (Choose a cutoff point
+#   for what constitutes catholic)
 print(f'Question 3a')
+
+cutoff = df_swiss['Catholic'].median()
+
+df_swiss['is_catholic'] = df_swiss.Catholic >= cutoff
+df_swiss.head()
+
+
+# %%
 
     # 3b. Does whether or not a province is Catholic influence fertility?
 print(f'Question 3b')
 
+# Create a scatter plot with a regression line
+sns.scatterplot(data=df_swiss, x='Catholic', y='Fertility', hue='is_catholic')
+sns.set_style("darkgrid")
+plt.title('Fertility vs. Catholic Proportion')
+plt.xlabel('Proportion of Catholics')
+plt.ylabel('Fertility Rate')
+plt.show()
+
+# %%
+
     # 3c. What measure correlates most strongly with fertility?
 print(f'Question 3c')
+sns.heatmap(df_swiss.corr(), cmap='Blues', annot=True)
+plt.show()
+
+# %%
 
 # 4. Load the chipotle dataset from SQL, create a bar chart that shows the
    # 4 most popular items and the revenue produced by each.
 print(f'Question 4')
 
-# 5. Load the sleepstudy dataset from pydataset and read it's documentation.
-   # Use seaborn to create a line chart of all the individual subject's reaction
-   # times and a more prominant line showing the average change in reaction time.
-print(f'Question 5')
+# Connect to MySQL
+from env import get_db_url
+url = get_db_url('chipotle')
 
+# Write a query to extract the data we need
+query = '''
+select
+    item_name, 
+    sum(quantity) as total_quantity,
+    round(sum(quantity * cast(replace(item_price, '$', '') as float)), 2) as total_revenue
+from orders
+group by item_name
+order by total_quantity desc
+limit 4;
+'''
+
+# Load the query results into a pandas dataframe
+df_orders = pd.read_sql(query, url)
+
+# Create a bar chart showing the 4 most popular items and their revenue
+sns.barplot(data=df_orders, x='item_name', y='total_quantity', hue='total_revenue')
+plt.title('Revenue Generated by the 4 Most Popular Items')
+plt.xlabel('Item')
+plt.ylabel('Revenue')
+plt.ylim(0, 800)
+plt.show()
+
+
+
+# %%
+
+# 5. Load the sleepstudy dataset from pydataset and read it's documentation.
+
+print(f'Question 5')
+df_sleepstudy = data('sleepstudy')
+df_sleepstudy.info()
+df_sleepstudy.head()
+
+
+
+# %%
+# Use seaborn to create a line chart of all the individual subject's reaction
+# times and a more prominant line showing the average change in reaction time.
+
+# Set up the plot
+sns.set_style('darkgrid')
+plt.figure(figsize=(10, 6))
+
+# Create the individual subject lines
+sns.lineplot(data=df_sleepstudy, x='Days', y='Reaction', hue='Subject')
+
+# Create the average line
+sns.lineplot(data=df_sleepstudy, x='Days', y='Reaction', color='blue', ci=None, estimator='mean')
+
+# Add labels and titles
+plt.xlabel('Days')
+plt.ylabel('Reaction Time')
+plt.title('Individual Subject Reaction Times with Average Line')
+
+# Set the y-axis limits
+plt.ylim(0, 600)
+
+# Show the plot
+plt.show()
+
+# %%
 
 
 
