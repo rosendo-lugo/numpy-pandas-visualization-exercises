@@ -218,8 +218,10 @@ print(f'Titles table',titles_table[titles_table.to_date != titles_table.to_date.
 print('\nExercises II, Question 1')
 print('Both DataFrames were copy')
 # Create the users DataFrame.
+from pydataset import data
 import pandas as pd
 import numpy as np
+
 
 users = pd.DataFrame({
     'id': [1, 2, 3, 4, 5, 6],
@@ -239,8 +241,12 @@ print(f'\nRoles Table\n',roles)
 # 2. What is the result of using a right join on the DataFrames?
 print('\nExercises II, Question 2')
 
-right_join = pd.merge(roles,users, how='right', right_on='id', left_on='id', indicator=True)
+right_join = pd.merge(users,roles, how='right', right_on='id', left_on='role_id', indicator=True)
 print(f'Right join\n',right_join)
+
+#Another option
+another_option_to_merge = users.merge(roles, how='right', left_on='role_id', right_on='id', indicator=True)
+print(another_option_to_merge )
 
 # 3. What is the result of using an outer join on the DataFrames?
 print('\nExercises II, Question 3')
@@ -250,59 +256,266 @@ print(f'Outer join\n',outer_join)
 # 4. What happens if you drop the foreign keys from 
 # the DataFrames and try to merge them?
 print('\nExercises II, Question 4')
-empty_users = users.drop(columns=['name','role_id'])
+empty_users = users.drop(columns=['role_id'])
 print(f'\nEmpty users table',empty_users)
 
-empty_roles = roles.drop(columns=['name'])
-print(f'\nEmpty roles table',empty_roles)
+# empty_roles = roles.drop(columns=['name'])
+# print(f'\nEmpty roles table',empty_roles)
 
+empty_outer_join = pd.merge(empty_users,roles, how='outer', right_on='id', left_on='id', indicator=True)
+print(f'\nEmpty outer join\n',empty_outer_join)
+print(f'\nIt merge both tables but end up changing the last to rows to a left merge\n')
 
-# 5. Load the mpg dataset from PyDataset.
+# # 5. Load the mpg dataset from PyDataset.
 print('\nExercises II, Question 5')
+mpg = data('mpg')
+print(f'\nMPG dataset\n',mpg)
 
-# 6. Output and read the documentation for the mpg dataset.
+# # 6. Output and read the documentation for the mpg dataset.
 print('\nExercises II, Question 6')
+# print(f'\nMPG dataset\n',mpg, show_doc=True)
 
-# 7. How many rows and columns are in the dataset?
+# # 7. How many rows and columns are in the dataset?
 print('\nExercises II, Question 7')
+print(f'\nMPG dataset\n',mpg.shape)
 
-# 8. Check out your column names and perform any cleanup 
-# you may want on them.
+# # 8. Check out your column names and perform any cleanup 
+# # you may want on them.
 print('\nExercises II, Question 8')
+print(f'\nMPG dataset\n',mpg.head())
+cars = mpg.rename(columns={'class': 'cls'}, inplace=True)
+highway = mpg.rename(columns={'hwy': 'highway'}, inplace=True)
+print('\nChanged the cty to city and hwy to highway\n',mpg.head())
 
-# 9. Display the summary statistics for the dataset.
+
+# # 9. Display the summary statistics for the dataset.
 print('\nExercises II, Question 9')
+print(f'\nMPG dataset\n',mpg.describe().T)
 
-# 10. How many different manufacturers are there?
+# # 10. How many different manufacturers are there?
 print('\nExercises II, Question 10')
+print(f'\nThe amount of different manufactures: \n',mpg.manufacturer.unique())
+print(f'\nThe amount of different manufactures: \n',mpg.manufacturer.nunique())
 
-# 11. How many different models are there?
+
+# # 11. How many different models are there?
 print('\nExercises II, Question 11')
+print(f'\nmodels\n',mpg.model.unique())
+print(f'\nDescribe all\n',mpg.describe(include='all'))
 
-# 12. Create a column named mileage_difference 
-# like you did in the DataFrames exercises; 
-# this column should contain the difference between
-#  highway and city mileage for each car.
+# # 12. Create a column named mileage_difference 
+# # like you did in the DataFrames exercises; 
+# # this column should contain the difference between
+# #  highway and city mileage for each car.
 print('\nExercises II, Question 12')
 
-# 13. Create a column named average_mileage like 
-# you did in the DataFrames exercises; this is the 
-# mean of the city and highway mileage.
+mpg['mileage_difference'] = mpg['highway'] - mpg['cty']
+print(mpg.head())
+
+# # 13. Create a column named average_mileage like 
+# # you did in the DataFrames exercises; this is the 
+# # mean of the city and highway mileage.
 print('\nExercises II, Question 13')
 
-# 14. Create a new column on the mpg dataset named
-#  is_automatic that holds boolean values denoting
-#  whether the car has an automatic transmission.
+mpg[['cty','highway']].agg('mean', axis=1)
+mpg['average_mileage'] = mpg[['cty','highway']].agg('mean', axis=1)
+print(mpg.head())
+
+# # 14. Create a new column on the mpg dataset named
+# #  is_automatic that holds boolean values denoting
+# #  whether the car has an automatic transmission.
 print('\nExercises II, Question 14')
+mpg.trans.value_counts()
+mpg.trans.str.contains('auto')
+mpg['is_automatic'] = mpg.trans.str.contains('auto')
+print(mpg.head())
 
-# 15. Using the mpg dataset, find out which which
-#  manufacturer has the best miles per gallon on average?
+
+# # 15. Using the mpg dataset, find out which which
+# #  manufacturer has the best miles per gallon on average?
 print('\nExercises II, Question 15')
+# Any of the below will work for question 15
+mpg.groupby('manufacturer').mean().average_mileage.sort_values().tail(1)
+mpg.groupby('manufacturer').mean().average_mileage.sort_values(ascending=False).head(1)
+mpg.groupby('manufacturer')['average_mileage'].mean().nlargest(1)
+mpg.groupby('manufacturer').mean().average_mileage.nlargest(1)
 
-# 16. Do automatic or manual cars have better miles per gallon?
+# # 16. Do automatic or manual cars have better miles per gallon?
 print('\nExercises II, Question 16')
+mpg.groupby('is_automatic').mean().average_mileage.head(1)
 
 
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Exercises III
+# Use your get_db_url function to help you 
+# explore the data from the chipotle database.
+import pandas as pd
+import numpy as np
+from env import get_db_url # This allows you to find the get_db_url function from the env.py file. 
+# from pydataset import data
+
+# get the data from MySQL
+# The below lines allow you to communicate with MySQL and retrive tables.
+# This retrives the orders table from the Chipotle database
+# If you need to change databases and tables just update "chipotle (database) and orders (table)"
+url = get_db_url('chipotle') # Chipotle is the database were the orders table is coming from. Don't forget that Chipotle is a database not a table.
+pd.read_sql(url) # This will allow you to see how many tables are in the database. 
+orders_table_df = pd.read_sql('SELECT * FROM orders', url) # Orders is a table. The table is located in the mySQL
+print('\n',orders_table_df)
+
+# 1. What is the total price for each order?
+print('\nExercises III, Question 1')
+
+# ************** Option 1 **************
+query = '''
+SELECT order_id, SUM(CAST(REPLACE(item_price, '$', '') AS DECIMAL(10,2))) AS total_price
+FROM orders
+GROUP BY order_id
+'''
+
+total_price_df = pd.read_sql(query, url)
+print(f'\n************** Option 1 **************\n',total_price_df)
 
 
+# ************** Option 2 **************
+# clean the item_price column
+orders_table_df['item_price'] = orders_table_df['item_price']\
+    .str.replace('$', '').astype(float)
+
+# pivot the data to get the total price for each order
+order_totals = pd.pivot_table(orders_table_df, values='item_price',\
+                               index='order_id', aggfunc=np.sum)
+
+print(f'\n************** Option 2 **************\n',order_totals,'\n')
+
+
+# ************** Option 3 **************
+order_price = orders_table_df.groupby('order_id').item_price.sum()
+
+# 2. What are the most popular 3 items?
+print('\nExercises III, Question 2')
+# ************** Option 1 **************
+popular_three = orders_table_df.groupby('item_name')['quantity'].sum()
+top_three = popular_three.sort_values(ascending=False).head(3)
+print(f'\n************** Option 1 **************\n',top_three)
+
+
+# ************** Option 2 **************
+most_popular = pd.pivot_table(data=orders_table_df, index='item_name', values='quantity', aggfunc='sum')
+three_popular = most_popular.nlargest(3, 'quantity')
+print(f'\n************** Option 2 **************\n',three_popular) 
+
+# ************** Option 3 **************
+popular_three_items = orders_table_df.groupby('item_name').quantity.sum().sort_values(ascending=False).head()
+print(f'\n************** Option 3 **************\n',popular_three_items)
+
+
+# 3. Which item has produced the most revenue?
+print('\n\nExercises III, Question 3')
+
+# ************** Option 1 **************
+
+# Use the pivot_table() method to group orders by item_name and order_id
+#  and sum the quantity and item_price columns for each group
+order_totals = pd.pivot_table(orders_table_df, index='item_name',\
+                               values=['quantity', 'item_price'], aggfunc=np.sum)
+
+
+# Created another column named "total_price" by multipling the quantity and item price
+order_totals['total_price'] = order_totals['quantity'] * order_totals['item_price']
+
+
+# Use the nlargest() method to return the row with the highest total item_price
+most_revenue = order_totals.nlargest(1, 'total_price')
+
+print(f'The item with the most Revenue\n\n',most_revenue)
+
+# ************** Option 2 **************
+
+orders_table_df[orders_table_df.item_name == 'Chicken Bowl'].sort_values('quantity')
+
+most_revenue_opt2 = orders_table_df.groupby('item_name').item_price.sum().nlargest(1)
+print(f'The item with the most Revenue - Option 2\n\n',most_revenue_opt2)
+
+
+# 4. Join the employees and titles DataFrames together.
+print('\nExercises III, Question 4')
+url = get_db_url('employees') # Employees is the database were the orders table is coming from.
+# Don't forget that Employee is a database not a table.
+titles_table_df = pd.read_sql('SELECT * FROM titles', url) # Title is a table. The table is located in the mySQL and was limited to 1000 rows
+employees_table_df = pd.read_sql('SELECT * FROM employees', url) # Employees is a table. The table is located in the mySQLL and was limited to 1000 rows
+print('\n',titles_table_df.head())
+
+print('\n',employees_table_df.head())
+
+# format: pd.merge(df1,df2, how='', on='column_name') 
+# The how is asking if you want to do it by 'inner', 'outer', 'left', or 'right'.
+# The on= can only be used if both tables have the same name (emp_no) in the columns if they have
+#  differen names use the left_on='emp_num' and right_on='employee_number'. All this is assuming that the 
+# values inside the columns are the same. 
+# the "how='emp_no'" doesn't have to be listed because is a default. 
+et_tt_merge_df = pd.merge(titles_table_df, employees_table_df, how='inner', on='emp_no')
+print('\n',et_tt_merge_df)
+
+
+et_tt_merge_df
+
+et_tt_merge_df.describe(include='all')
+
+
+# 5. For each title, find the hire date of the employee
+# that was hired most recently with that title.
+print('\nExercises III, Question 5')
+
+# Examples of sorting and groupby
+    # df.sort_values(by='col1', ascending=False)
+    # format: df.groupby('column_name').agg_function()
+    # df.groupby('room').max()[['math','reading','english']]
+
+# This will give you the olddest date. 
+# Utilizied .max() as assending
+et_tt_merge_df.groupby('title').hire_date.min() 
+
+# This will give you the most current date. 
+# Utilizied .max() as dessending
+recently_hire = et_tt_merge_df.groupby('title').hire_date.max()
+
+print(f'The employees that were hired most recently by title: \n\n',recently_hire)
+
+max_hire_dates = et_tt_merge_df.groupby('title').hire_date.max()
+max_hire_dates = pd.DataFrame(max_hire_dates).reset_index()
+max_hire_dates
+
+pd.merge(et_tt_merge_df, max_hire_dates, on=['title', 'hire_date']).sort_values('title')
+
+# 6. Write the code necessary to create a cross tabulation
+# of the number of titles by department. (Hint: this 
+# will involve a combination of SQL code to pull the 
+# necessary data and python/pandas code to perform the
+# manipulations.)
+print('\nExercises III, Question 6')
+url = get_db_url('employees')
+
+et_tt_merge_df
+
+# Join the department employee and the department using department number with MySQL 
+emp_dept = pd.read_sql('''
+select *
+from dept_emp
+    join departments
+        using(dept_no)
+''', url)
+
+# Display the head of the employee department table
+emp_dept.head()
+
+# Display the head of the merge of the employee and title table
+et_tt_merge_df.head()
+
+# Merge the employees/title table with the employees department using the employee number
+et_tt_dt_df = pd.merge(et_tt_merge_df, emp_dept, on='emp_no')
+et_tt_dt_df.head()
+
+# Utilize the crosstab to show both tables
+pd.crosstab(et_tt_dt_df.title, et_tt_dt_df.dept_name)
 
